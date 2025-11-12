@@ -82,4 +82,5 @@ def process():
     return send_file(io.BytesIO(cleaned), as_attachment=True, download_name=filename, mimetype="application/pdf")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5050, debug=True)
+    import os
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "10000")), debug=False)
