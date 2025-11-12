@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PDF White Page Remover</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<main class="container">
+  <section class="hero">
+    <h1>Remove blank pages from your PDF</h1>
+    <p>Upload a PDF and get a cleaned version instantly.</p>
+  </section>
+
+  <section class="card upload-card">
+    <iframe id="dlframe" name="dlframe" hidden></iframe>
+
+    <form id="uploadForm" action="/process" method="post" enctype="multipart/form-data" target="dlframe" novalidate>
+      <div id="drop" class="dropzone" aria-label="PDF uploader">
+        
+        <input id="file" type="file" name="file" accept="application/pdf" hidden>
+
+        <div class="drop-inner" id="dropInner">
+          <div class="drop-icon">⬆︎</div>
+          <div class="drop-copy">
+            <strong>Drag & drop your PDF</strong>
+            <span>or</span>
+            <label class="trigger-btn" for="file">Browse files</label>
+          </div>
+        </div>
+
+        <div class="file-row" id="fileRow" hidden>
+          <div class="file-meta">
+            <div class="file-dot"></div>
+            <div class="file-name" id="fileName">file.pdf</div>
+          </div>
+          <div class="file-actions">
+            <label class="btn-ghost" for="file">Replace</label>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="submitBtn" type="submit" disabled>Clean PDF</button>
+    </form>
+  </section>
+</main>
+
+<script>
+const drop = document.getElementById('drop');
+const dropInner = document.getElementById('dropInner');
+const fileRow = document.getElementById('fileRow');
+const fileNameEl = document.getElementById('fileName');
+const submitBtn = document.getElementById('submitBtn');
+const form = document.getElementById('uploadForm');
+const dlframe = document.getElementById('dlframe');
+
+let fileInput = document.getElementById('file');
+
+function wireInput() {
+  fileInput.addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if (f) onChosen(f);
+  });
+}
+
+function resetChooser() {
+  const fresh = fileInput.cloneNode(true);
+  fileInput.replaceWith(fresh);
+  fileInput = fresh;
+  wireInput();
+}
+
+function onChosen(file){
+  fileNameEl.textContent = file.name;
+  submitBtn.disabled = false;
+  drop.classList.add('has-file');
+  dropInner.hidden = true;
+  fileRow.hidden = false;
+}
+
+wireInput();
+
+['dragenter','dragover'].forEach(evt => drop.addEventListener(evt, e => {
+  e.preventDefault(); drop.classList.add('is-drag');
+}));
+['dragleave','drop'].forEach(evt => drop.addEventListener(evt, e => {
+  e.preventDefault(); drop.classList.remove('is-drag');
+}));
+
+drop.addEventListener('drop', e => {
+  const files = e.dataTransfer.files;
+  if (files && files[0]) {
+    resetChooser();
+    try {
+      const dt = new DataTransfer();
+      dt.items.add(files[0]);
+      fileInput.files = dt.files;
+    } catch (_) {}
+    onChosen(files[0]);
+  }
+});
+
+form.addEventListener('submit', () => {
+  form.classList.add('is-loading');
+  submitBtn.disabled = true;
+});
+
+dlframe.addEventListener('load', () => {
+  form.classList.remove('is-loading');
+  if (fileInput.files && fileInput.files.length > 0) submitBtn.disabled = false;
+});
+</script>
+</body>
+</html>
